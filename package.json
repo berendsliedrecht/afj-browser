@@ -1,0 +1,22 @@
+{
+  "name": "afj-browser",
+  "version": "1.0.0",
+  "private": true,
+  "license": "MIT",
+  "scripts": {
+    "start": "webpack serve",
+    "build": "webpack"
+  },
+  "dependencies": {
+    "@aries-framework/core": "0.4.0",
+    "events": "^3.3.0",
+    "https-browserify": "1.0.0",
+    "stream-http": "3.2.0",
+    "url": "0.11.1"
+  },
+  "devDependencies": {
+    "webpack": "^5.88.2",
+    "webpack-cli": "^5.1.4",
+    "webpack-dev-server": "^4.15.1"
+  }
+}
