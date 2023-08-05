@@ -7,6 +7,7 @@ import {
   StorageService,
   Key,
   AgentContext,
+  KeyType,
 } from "@aries-framework/core"
 import { BrowserKeyRecord } from "./browserkeyrecord"
 
@@ -34,5 +35,14 @@ export class BrowserKeyRepository extends Repository<BrowserKeyRecord> {
       BrowserKeyRecord,
       `${key.keyType}::${key.publicKeyBase58}`
     )
+  }
+
+  public async getFromBase58(
+    agentContext: AgentContext,
+    key: string,
+    keyType: KeyType
+  ): Promise<BrowserKeyRecord> {
+    const keyCls = Key.fromPublicKeyBase58(key, keyType)
+    return await this.getFromKeyClass(agentContext, keyCls)
   }
 }

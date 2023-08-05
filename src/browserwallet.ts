@@ -1,5 +1,5 @@
 import {
-  type KeyType,
+  KeyType,
   type EncryptedMessage,
   type UnpackedMessageContext,
   type Wallet,
@@ -14,10 +14,25 @@ import {
   isValidSeed,
   isValidPrivateKey,
   injectable,
+  WalletError,
+  JsonTransformer,
+  TypedArrayEncoder,
+  JwsService,
+  JsonEncoder,
 } from "@aries-framework/core"
 import { logger } from "."
 import { BrowserKeyRecord } from "./browserkeyrecord"
 import { BrowserKeyRepository } from "./browserkeyrepository"
+import {
+  BrowserKey,
+  BrowserKeyAlgorithm,
+  keyTypeToBrowserAlgorithm,
+} from "./browserkey"
+import {
+  JweEnvelope,
+  JweRecipient,
+} from "@aries-framework/askar/build/wallet/JweEnvelope"
+import { randomBytes } from "@noble/ciphers/webcrypto/utils"
 
 @injectable()
 export class BrowserWallet implements Wallet {
@@ -98,17 +113,23 @@ export class BrowserWallet implements Wallet {
       throw new Error("Invalid private key provided")
     }
 
+    const bka = keyTypeToBrowserAlgorithm(keyType)
+
     // Create key
-    const keyRecord = privateKey
-      ? BrowserKeyRecord.fromSecretBytes({ secretKey: privateKey, keyType })
+    const browserKey = privateKey
+      ? BrowserKey.fromSecretBytes({ secretKey: privateKey, algorithm: bka })
       : seed
-      ? BrowserKeyRecord.fromSeed({ seed, keyType })
-      : BrowserKeyRecord.generate({ keyType })
+      ? BrowserKey.fromSeed({ seed, algorithm: bka })
+      : BrowserKey.generate(bka)
 
-    // @ts-ignore
-    await this.browserKeyRepository.save({}, keyRecord).catch(console.error)
+    const browserKeyRecord = new BrowserKeyRecord({ browserKey })
 
-    return Promise.resolve(keyRecord.key)
+    await this.browserKeyRepository
+      // @ts-ignore
+      .save({}, browserKeyRecord)
+      .catch(console.error)
+
+    return Promise.resolve(browserKey.key)
   }
 
   public async sign({ key, data }: WalletSignOptions): Promise<Buffer> {
@@ -117,7 +138,7 @@ export class BrowserWallet implements Wallet {
     }
     // @ts-ignore
     const keyRecord = await this.browserKeyRepository.getFromKeyClass({}, key)
-    const signature = keyRecord.sign({ data: Uint8Array.from(data as Buffer) })
+    const signature = keyRecord.browserKey.sign(Uint8Array.from(data as Buffer))
 
     return Buffer.from(signature)
   }
@@ -127,13 +148,89 @@ export class BrowserWallet implements Wallet {
     throw new Error("Verify is not implemented.")
   }
 
-  public pack(
+  public async pack(
     _payload: Record<string, unknown>,
-    _recipientKeys: string[],
-    _senderVerkey?: string
+    recipientKeys: string[],
+    senderVerkey?: string
   ): Promise<EncryptedMessage> {
     logger.debug("called wallet.pack")
-    throw new Error("Pack is not implemented.")
+    const senderKey = senderVerkey
+      ? (
+          await this.browserKeyRepository.getFromBase58(
+            //@ts-ignore
+            {},
+            senderVerkey,
+            KeyType.Ed25519
+          )
+        ).browserKey
+      : undefined
+
+    if (senderVerkey && !senderKey) {
+      throw new WalletError(
+        `Unable to pack message. Sender key ${senderVerkey} not found in wallet.`
+      )
+    }
+
+    const cek = BrowserKey.generate(BrowserKeyAlgorithm.Chacha20C20P)
+    const senderExchangeKey = senderKey
+      ? senderKey.convertKey({ algorithm: BrowserKeyAlgorithm.X25519 })
+      : undefined
+
+    const recipients: Array<JweRecipient> = []
+
+    for (const recipientKey of recipientKeys) {
+      const targetExchangeKey = BrowserKey.fromPublicBytes({
+        publicKey: Key.fromPublicKeyBase58(recipientKey, KeyType.Ed25519)
+          .publicKey,
+        algorithm: BrowserKeyAlgorithm.Ed25519,
+      }).convertKey({ algorithm: BrowserKeyAlgorithm.X25519 })
+
+      if (senderVerkey && senderExchangeKey) {
+        // TODO: cryptobox.seal
+        const nonce = randomBytes(24)
+        // TODO: cryptobox.cryptobox
+
+        recipients.push(
+          new JweRecipient({
+            encryptedKey: Uint8Array.from([]),
+            header: {
+              kid: recipientKey,
+              sender: TypedArrayEncoder.toBase64URL(Uint8Array.from([])),
+              iv: TypedArrayEncoder.toBase64URL(nonce),
+            },
+          })
+        )
+      } else {
+        // TODO: cryptobox.seal
+
+        recipients.push(
+          new JweRecipient({
+            encryptedKey: Uint8Array.from([]),
+            header: {
+              kid: recipientKey,
+            },
+          })
+        )
+      }
+    }
+
+    const protectedJson = {
+      enc: "xchacha20poly1305_ietf",
+      typ: "JWM/1.0",
+      alg: senderVerkey ? "Authcrypt" : "Anoncrypt",
+      recipients: recipients.map((item) => JsonTransformer.toJSON(item)),
+    }
+
+    // TODO: aeadEncrypt
+
+    const envelope = new JweEnvelope({
+      ciphertext: "",
+      iv: "",
+      protected: JsonEncoder.toBase64URL(protectedJson),
+      tag: "",
+    }).toJson()
+
+    return envelope as EncryptedMessage
   }
 
   public unpack(
