@@ -9,8 +9,10 @@
   },
   "dependencies": {
     "@aries-framework/core": "^0.4.0",
+    "@stablelib/ed25519": "^1.0.3",
     "events": "^3.3.0",
     "https-browserify": "^1.0.0",
+    "indexeddb-fs": "^2.1.5",
     "isomorphic-ws": "^5.0.0",
     "stream-http": "^3.2.0",
     "url": "^0.11.1"

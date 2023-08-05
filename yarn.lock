@@ -236,7 +236,7 @@
   dependencies:
     "@stablelib/int" "^1.0.1"
 
-"@stablelib/ed25519@^1.0.2":
+"@stablelib/ed25519@^1.0.2", "@stablelib/ed25519@^1.0.3":
   version "1.0.3"
   resolved "https://registry.yarnpkg.com/@stablelib/ed25519/-/ed25519-1.0.3.tgz#f8fdeb6f77114897c887bb6a3138d659d3f35996"
   integrity sha512-puIMWaX9QlRsbhxfDc5i+mNPMY+0TmQEskunY1rZEBPi1acBCVQAhnsk/1Hk50DGPtVsZtAWQg4NHGlVaO9Hqg==
@@ -1622,6 +1622,13 @@ import-local@^3.0.2:
     pkg-dir "^4.2.0"
     resolve-cwd "^3.0.0"
 
+indexeddb-fs@^2.1.5:
+  version "2.1.5"
+  resolved "https://registry.yarnpkg.com/indexeddb-fs/-/indexeddb-fs-2.1.5.tgz#f274d78b980ddfd4882641e2d966778479b8d8ba"
+  integrity sha512-4TDdof4ou+l1P3O9D+U09DAc2VQ/bWzgKBxC3nQ9qqMhNR2Y3p8JDgELzkY3bwLP8JULMTf2UHsjnYpiKExH2w==
+  dependencies:
+    jsonschema "^1.4.1"
+
 inflight@^1.0.4:
   version "1.0.6"
   resolved "https://registry.yarnpkg.com/inflight/-/inflight-1.0.6.tgz#49bd6331d7d02d0c09bc910a1075ba8165b56df9"
@@ -1809,6 +1816,11 @@ jsonfile@^6.0.1:
     universalify "^2.0.0"
   optionalDependencies:
     graceful-fs "^4.1.6"
+
+jsonschema@^1.4.1:
+  version "1.4.1"
+  resolved "https://registry.yarnpkg.com/jsonschema/-/jsonschema-1.4.1.tgz#cc4c3f0077fb4542982973d8a083b6b34f482dab"
+  integrity sha512-S6cATIPVv1z0IlxdN+zUk5EPjkGCdnhN4wVSBlvoUO1tOLJootbo9CquNJmbIh4yikWHiUedhRYrNPn1arpEmQ==
 
 kind-of@^6.0.2:
   version "6.0.3"

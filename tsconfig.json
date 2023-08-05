@@ -6,6 +6,8 @@
     "module": "ESNext",
     "target": "ES2017",
     "lib": ["ES5", "ES6", "DOM"],
+    "experimentalDecorators": true,
+    "emitDecoratorMetadata": true,
     "allowSyntheticDefaultImports": true,
     "moduleResolution": "node"
   },
