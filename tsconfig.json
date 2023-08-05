@@ -3,9 +3,9 @@
     "outDir": "./dist/",
     "noImplicitAny": true,
     "esModuleInterop": true,
-    "module": "es6",
-    "target": "es5",
-    "allowJs": true,
+    "module": "ESNext",
+    "target": "ES2017",
+    "lib": ["ES5", "ES6", "DOM"],
     "allowSyntheticDefaultImports": true,
     "moduleResolution": "node"
   },

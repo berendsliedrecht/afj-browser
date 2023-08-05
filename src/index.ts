@@ -6,7 +6,7 @@ import WebSocket from "isomorphic-ws"
 
 const agent = new Agent({
   config: {
-    label: "a",
+    label: "browseragent",
     logger: new ConsoleLogger(LogLevel.test),
     walletConfig: { id: "some-id", key: "some-key" },
   },
@@ -21,7 +21,4 @@ const agent = new Agent({
   },
 })
 
-void (async () => {
-  await agent.initialize()
-  console.log("initialized!")
-})()
+await agent.initialize()

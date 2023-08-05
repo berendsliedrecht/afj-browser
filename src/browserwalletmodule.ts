@@ -1,8 +1,5 @@
-import {
-  DependencyManager,
-  InjectionSymbols,
-  Module,
-} from "@aries-framework/core"
+import { DependencyManager, InjectionSymbols } from "@aries-framework/core"
+import type { Module } from "@aries-framework/core"
 import { BrowserWallet } from "./browserwallet"
 import { BrowserStorageService } from "./browserstorageservice"
 
@@ -10,11 +7,11 @@ export class BrowserWalletModule implements Module {
   public register(dependencyManager: DependencyManager) {
     dependencyManager.registerContextScoped(
       InjectionSymbols.Wallet,
-      BrowserWallet,
+      BrowserWallet
     )
     dependencyManager.registerSingleton(
       InjectionSymbols.StorageService,
-      BrowserStorageService,
+      BrowserStorageService
     )
   }
 }

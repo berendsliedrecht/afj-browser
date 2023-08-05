@@ -1,35 +1,41 @@
 import type { DownloadToFileOptions, FileSystem } from "@aries-framework/core"
 
 export class BrowserFileSystem implements FileSystem {
-  dataPath: string
-  cachePath: string
-  tempPath: string
+  public dataPath: string
+  public cachePath: string
+  public tempPath: string
 
-  exists(_path: string): Promise<boolean> {
-    throw new Error("Method not implemented.")
-  }
-
-  createDirectory(_path: string): Promise<void> {
-    throw new Error("Method not implemented.")
+  public exists(_path: string): Promise<boolean> {
+    throw new Error("Exists is not implemented.")
   }
 
-  copyFile(_sourcePath: string, _destinationPath: string): Promise<void> {
-    throw new Error("Method not implemented.")
+  public createDirectory(_path: string): Promise<void> {
+    throw new Error("Create directory is not implemented.")
   }
-  write(_path: string, _data: string): Promise<void> {
-    throw new Error("Method not implemented.")
+
+  public copyFile(
+    _sourcePath: string,
+    _destinationPath: string
+  ): Promise<void> {
+    throw new Error("Copy file is not implemented.")
   }
-  read(_path: string): Promise<string> {
-    throw new Error("Method not implemented.")
+
+  public write(_path: string, _data: string): Promise<void> {
+    throw new Error("Write is not implemented.")
   }
-  delete(_path: string): Promise<void> {
-    throw new Error("Method not implemented.")
+  public read(_path: string): Promise<string> {
+    throw new Error("Read is not implemented.")
   }
-  downloadToFile(
+
+  public delete(_path: string): Promise<void> {
+    throw new Error("Delete is not implemented.")
+  }
+
+  public downloadToFile(
     _url: string,
     _path: string,
-    _options?: DownloadToFileOptions,
+    _options?: DownloadToFileOptions
   ): Promise<void> {
-    throw new Error("Method not implemented.")
+    throw new Error("Download to file is not implemented.")
   }
 }
