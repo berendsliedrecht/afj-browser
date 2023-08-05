@@ -19,13 +19,19 @@ export class BrowserStorageService<T extends BaseRecord>
 
   public async save(_: AgentContext, record: T): Promise<void> {
     logger.debug("called storage.save")
-    const id = this.getId(record.id, record.type)
-    if (localStorage.getItem(id)) {
-      throw new RecordDuplicateError(
-        `Record with id ${record.id} already exists`,
-        { recordType: record.type }
-      )
-    }
+    let id = this.getId(record.id, record.type)
+    console.log(record.toJSON())
+    // let exists = false
+    // try {
+    //   exists = !!localStorage.getItem(id)
+    // } catch {}
+
+    // if (exists) {
+    //   throw new RecordDuplicateError(
+    //     `Record with id ${record.id} already exists`,
+    //     { recordType: record.type }
+    //   )
+    // }
     localStorage.setItem(id, JSON.stringify(record.toJSON()))
     return Promise.resolve()
   }

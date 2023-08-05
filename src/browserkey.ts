@@ -7,8 +7,6 @@ import {
   convertPublicKeyToX25519,
   convertSecretKeyToX25519,
 } from "@stablelib/ed25519"
-import { chacha20 } from "@noble/ciphers/chacha"
-import { randomBytes } from "@noble/ciphers/webcrypto/utils"
 
 export enum BrowserKeyAlgorithm {
   Ed25519 = "ed25519",
@@ -38,6 +36,7 @@ export const keyTypeToBrowserAlgorithm = (kt: KeyType) => {
   }
 }
 
+// TODO: make sure the Uint8array transforms correctly to and from json
 export class BrowserKey {
   public secretKey?: Uint8Array
   public publicKey?: Uint8Array
@@ -128,7 +127,7 @@ export class BrowserKey {
         const keyPair = ed25519GenerateKeyPair()
         return new BrowserKey({ algorithm, ...keyPair })
       case BrowserKeyAlgorithm.Chacha20C20P:
-        const key = randomBytes(32)
+        const key = window.sodium.randombytes_buf(32)
         return new BrowserKey({ secretKey: key, algorithm })
       default:
         throw new Error(`Unsupported algorithm: ${algorithm}`)
@@ -179,14 +178,20 @@ export class BrowserKey {
     }
   }
 
-  public encrypt(data: Uint8Array): Uint8Array {
+  public aeadEncrypt({
+    aad,
+    message,
+  }: {
+    aad: Uint8Array
+    message: Uint8Array
+  }) {
     if (!this.secretKey)
-      throw Error(`No secret key found for public key ${this.publicKey}`)
+      throw Error(`No secret key found which is required for aead encrypt`)
 
     switch (this.algorithm) {
       case BrowserKeyAlgorithm.Chacha20C20P:
-        const nonce = randomBytes(24)
-        return chacha20(this.secretKey, nonce, data)
+        const nonce = window.sodium.randombytes_buf(24)
+      // return chacha20(this.secretKey, nonce, data)
       default:
         throw new Error(
           `Unsupported key algorithm for encryption: ${this.algorithm}`

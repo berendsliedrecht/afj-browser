@@ -9,6 +9,7 @@ const config: Configuration = {
     fallback: {
       https: require.resolve("https-browserify"),
       http: require.resolve("stream-http"),
+      crypto: false,
     },
     extensions: [".ts", ".js"],
   },

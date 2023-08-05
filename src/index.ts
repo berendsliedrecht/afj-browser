@@ -1,3 +1,4 @@
+import sodium from "libsodium-wrappers"
 import {
   Agent,
   ConsoleLogger,
@@ -15,6 +16,9 @@ import { EventEmitter } from "events"
 import { BrowserFileSystem } from "./browserfilesystem"
 import { BrowserWalletModule } from "./browserwalletmodule"
 import WebSocket from "isomorphic-ws"
+
+await sodium.ready
+window.sodium = sodium
 
 export const logger = new ConsoleLogger(LogLevel.test)
 

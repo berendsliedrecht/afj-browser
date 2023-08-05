@@ -17,7 +17,6 @@ import {
   WalletError,
   JsonTransformer,
   TypedArrayEncoder,
-  JwsService,
   JsonEncoder,
 } from "@aries-framework/core"
 import { logger } from "."
@@ -32,7 +31,6 @@ import {
   JweEnvelope,
   JweRecipient,
 } from "@aries-framework/askar/build/wallet/JweEnvelope"
-import { randomBytes } from "@noble/ciphers/webcrypto/utils"
 
 @injectable()
 export class BrowserWallet implements Wallet {
@@ -149,7 +147,7 @@ export class BrowserWallet implements Wallet {
   }
 
   public async pack(
-    _payload: Record<string, unknown>,
+    payload: Record<string, unknown>,
     recipientKeys: string[],
     senderVerkey?: string
   ): Promise<EncryptedMessage> {
@@ -179,33 +177,39 @@ export class BrowserWallet implements Wallet {
     const recipients: Array<JweRecipient> = []
 
     for (const recipientKey of recipientKeys) {
-      const targetExchangeKey = BrowserKey.fromPublicBytes({
+      const targetPk = BrowserKey.fromPublicBytes({
         publicKey: Key.fromPublicKeyBase58(recipientKey, KeyType.Ed25519)
           .publicKey,
         algorithm: BrowserKeyAlgorithm.Ed25519,
       }).convertKey({ algorithm: BrowserKeyAlgorithm.X25519 })
 
       if (senderVerkey && senderExchangeKey) {
-        // TODO: cryptobox.seal
-        const nonce = randomBytes(24)
-        // TODO: cryptobox.cryptobox
+        const encSender = window.sodium.crypto_box_seal(senderVerkey, targetPk.publicKey)
+        const nonce = window.sodium.randombytes_buf(window.sodium.crypto_box_NONCEBYTES)
+
+        const encCek = window.sodium.crypto_box_easy(
+          cek.secretKey,
+          nonce,
+          targetPk.publicKey,
+          senderExchangeKey.secretKey
+        )
 
         recipients.push(
           new JweRecipient({
-            encryptedKey: Uint8Array.from([]),
+            encryptedKey: encCek,
             header: {
               kid: recipientKey,
-              sender: TypedArrayEncoder.toBase64URL(Uint8Array.from([])),
+              sender: TypedArrayEncoder.toBase64URL(encSender),
               iv: TypedArrayEncoder.toBase64URL(nonce),
             },
           })
         )
       } else {
-        // TODO: cryptobox.seal
+        const encCek = window.sodium.crypto_box_seal(cek.secretKey, targetPk.publicKey)
 
         recipients.push(
           new JweRecipient({
-            encryptedKey: Uint8Array.from([]),
+            encryptedKey: encCek,
             header: {
               kid: recipientKey,
             },
@@ -221,16 +225,26 @@ export class BrowserWallet implements Wallet {
       recipients: recipients.map((item) => JsonTransformer.toJSON(item)),
     }
 
-    // TODO: aeadEncrypt
+    const iv = window.sodium.randombytes_buf(window.sodium.crypto_aead_chacha20poly1305_ietf_NPUBBYTES)
+    const out = window.sodium.crypto_aead_chacha20poly1305_encrypt_detached(
+      JSON.stringify(payload),
+      JSON.stringify(protectedJson),
+      null,
+      iv,
+      cek.secretKey
+    )
+
+    const ciphertext = out.ciphertext
+    const tag = out.mac
 
     const envelope = new JweEnvelope({
-      ciphertext: "",
-      iv: "",
+      ciphertext: TypedArrayEncoder.toBase64URL(ciphertext),
+      iv: TypedArrayEncoder.toBase64URL(iv),
       protected: JsonEncoder.toBase64URL(protectedJson),
-      tag: "",
-    }).toJson()
+      tag: TypedArrayEncoder.toBase64URL(tag),
+    })
 
-    return envelope as EncryptedMessage
+    return envelope.toJson() as EncryptedMessage
   }
 
   public unpack(

@@ -9,16 +9,19 @@
     "build": "webpack"
   },
   "dependencies": {
+    "@aries-framework/askar": "^0.4.0",
     "@aries-framework/core": "^0.4.0",
     "@stablelib/ed25519": "^1.0.3",
     "events": "^3.3.0",
     "https-browserify": "^1.0.0",
     "indexeddb-fs": "^2.1.5",
     "isomorphic-ws": "^5.0.0",
+    "libsodium-wrappers": "^0.7.11",
     "stream-http": "^3.2.0",
     "url": "^0.11.1"
   },
   "devDependencies": {
+    "@types/libsodium-wrappers": "^0.7.10",
     "@types/node": "^20.4.8",
     "prettier": "^3.0.1",
     "ts-loader": "^9.4.4",

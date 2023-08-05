@@ -37,4 +37,8 @@ export class BrowserKeyRecord
       algorithm: this.browserKey.algorithm,
     }
   }
+
+  public clone() {
+    return this
+  }
 }

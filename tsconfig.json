@@ -11,6 +11,7 @@
     "allowSyntheticDefaultImports": true,
     "moduleResolution": "node"
   },
+  "include": ["./types", "./src"],
   "ts-node": {
     "compilerOptions": {
       "module": "CommonJS"
