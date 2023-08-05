@@ -8,13 +8,18 @@
     "build": "webpack"
   },
   "dependencies": {
-    "@aries-framework/core": "0.4.0",
+    "@aries-framework/core": "^0.4.0",
     "events": "^3.3.0",
-    "https-browserify": "1.0.0",
-    "stream-http": "3.2.0",
-    "url": "0.11.1"
+    "https-browserify": "^1.0.0",
+    "isomorphic-ws": "^5.0.0",
+    "stream-http": "^3.2.0",
+    "url": "^0.11.1"
   },
   "devDependencies": {
+    "prettier": "^3.0.1",
+    "ts-loader": "^9.4.4",
+    "ts-node": "^10.9.1",
+    "typescript": "~5.1.6",
     "webpack": "^5.88.2",
     "webpack-cli": "^5.1.4",
     "webpack-dev-server": "^4.15.1"
