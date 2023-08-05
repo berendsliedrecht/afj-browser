@@ -106,14 +106,20 @@ export class BrowserWallet implements Wallet {
       : BrowserKeyRecord.generate({ keyType })
 
     // @ts-ignore
-    await this.browserKeyRepository.save({}, keyRecord)
+    await this.browserKeyRepository.save({}, keyRecord).catch(console.error)
 
     return Promise.resolve(keyRecord.key)
   }
 
-  public sign(_: WalletSignOptions): Promise<Buffer> {
-    logger.debug("called wallet.sign")
-    throw new Error("Sign is not implemented.")
+  public async sign({ key, data }: WalletSignOptions): Promise<Buffer> {
+    if (Array.isArray(data[0])) {
+      throw new Error("cannot sign multiple items")
+    }
+    // @ts-ignore
+    const keyRecord = await this.browserKeyRepository.getFromKeyClass({}, key)
+    const signature = keyRecord.sign({ data: Uint8Array.from(data as Buffer) })
+
+    return Buffer.from(signature)
   }
 
   public verify(_options: WalletVerifyOptions): Promise<boolean> {

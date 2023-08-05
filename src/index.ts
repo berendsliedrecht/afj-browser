@@ -1,8 +1,15 @@
 import {
   Agent,
   ConsoleLogger,
+  DidsModule,
+  HttpOutboundTransport,
+  KeyDidRegistrar,
+  KeyDidResolver,
   LogLevel,
   MediationRecipientModule,
+  PeerDidRegistrar,
+  PeerDidResolver,
+  WsOutboundTransport,
 } from "@aries-framework/core"
 import { EventEmitter } from "events"
 import { BrowserFileSystem } from "./browserfilesystem"
@@ -18,6 +25,10 @@ const agent = new Agent({
     walletConfig: { id: "some-id", key: "some-key" },
   },
   modules: {
+    dids: new DidsModule({
+      resolvers: [new PeerDidResolver(), new KeyDidResolver()],
+      registrars: [new KeyDidRegistrar(), new PeerDidRegistrar()],
+    }),
     browserWallet: new BrowserWalletModule(),
     mediationRecipient: new MediationRecipientModule({
       mediatorInvitationUrl:
@@ -32,10 +43,7 @@ const agent = new Agent({
   },
 })
 
-await agent.initialize()
+agent.registerOutboundTransport(new HttpOutboundTransport())
+agent.registerOutboundTransport(new WsOutboundTransport())
 
-await agent.genericRecords.save({
-  id: "some-random-id",
-  tags: { a: "b" },
-  content: { a: "c" },
-})
+await agent.initialize()

@@ -2,7 +2,6 @@ import {
   BaseRecord,
   KeyType,
   TagsBase,
-  utils,
   Buffer,
   Key,
 } from "@aries-framework/core"
@@ -10,14 +9,14 @@ import {
   extractPublicKeyFromSecretKey,
   generateKeyPair,
   generateKeyPairFromSeed,
+  sign,
 } from "@stablelib/ed25519"
 
 export class BrowserKeyRecordProps {
-  id?: string
   keyType: KeyType
-  publicKey: Buffer
-  secretKey?: Buffer
-  key: Key
+
+  publicKey: Array<number>
+  secretKey?: Array<number>
 }
 
 export class BrowserKeyRecord
@@ -26,9 +25,8 @@ export class BrowserKeyRecord
 {
   public id: string
   public keyType: KeyType
-  public publicKey: Buffer
-  public secretKey?: Buffer
-  public key: Key
+  public publicKey: Array<number>
+  public secretKey?: Array<number>
 
   public static readonly type = "BrowserKeyRecord"
   public readonly type = BrowserKeyRecord.type
@@ -37,12 +35,12 @@ export class BrowserKeyRecord
     super()
 
     if (props) {
-      this.id = props.id ?? utils.uuid()
+      const k = new Key(Uint8Array.from(props.publicKey), props.keyType)
+      this.id = `${k.keyType}::${k.publicKeyBase58}`
       this.createdAt = new Date()
       this.keyType = props.keyType
       this.publicKey = props.publicKey
       this.secretKey = props.secretKey
-      this.key = props.key
     }
   }
 
@@ -51,6 +49,10 @@ export class BrowserKeyRecord
       ...this._tags,
       keyType: this.keyType,
     }
+  }
+
+  public get key() {
+    return Key.fromPublicKey(Uint8Array.from(this.publicKey), this.keyType)
   }
 
   public static fromSecretBytes({
@@ -64,10 +66,9 @@ export class BrowserKeyRecord
     const publicKey = Buffer.from(extractPublicKeyFromSecretKey(secretKey))
 
     return new BrowserKeyRecord({
-      secretKey,
-      publicKey,
+      secretKey: [...secretKey],
+      publicKey: [...publicKey],
       keyType,
-      key: new Key(publicKey, keyType),
     })
   }
 
@@ -84,9 +85,8 @@ export class BrowserKeyRecord
 
     return new BrowserKeyRecord({
       keyType,
-      publicKey: Buffer.from(kp.publicKey),
-      secretKey: Buffer.from(kp.secretKey),
-      key: new Key(Buffer.from(kp.publicKey), keyType),
+      publicKey: [...kp.publicKey],
+      secretKey: [...kp.secretKey],
     })
   }
 
@@ -97,9 +97,18 @@ export class BrowserKeyRecord
 
     return new BrowserKeyRecord({
       keyType,
-      publicKey: Buffer.from(kp.publicKey),
-      secretKey: Buffer.from(kp.secretKey),
-      key: new Key(Buffer.from(kp.publicKey), keyType),
+      publicKey: [...kp.publicKey],
+      secretKey: [...kp.secretKey],
     })
+  }
+
+  public sign({ data }: { data: Uint8Array }): Uint8Array {
+    if (Array.isArray(data[0])) {
+      throw new Error("cannot sign multiple items")
+    }
+
+    console.log(this.secretKey)
+
+    return sign(Uint8Array.from(this.secretKey), data)
   }
 }

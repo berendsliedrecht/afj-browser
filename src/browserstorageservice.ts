@@ -72,9 +72,7 @@ export class BrowserStorageService<T extends BaseRecord>
     const newId = this.getId(id, recordClass.type)
     const item = localStorage.getItem(newId)
     if (item) {
-      return await Promise.resolve(
-        JsonTransformer.deserialize<T>(item, recordClass)
-      )
+      return Promise.resolve(JsonTransformer.deserialize<T>(item, recordClass))
     } else {
       throw new RecordNotFoundError(
         `Record ${recordClass.type} with id ${id} does not exist`,
@@ -117,11 +115,12 @@ export class BrowserStorageService<T extends BaseRecord>
     const records = await this.getAll(agentContext, recordClass)
 
     const queryItems = Object.entries(query)
-    const filteredRecords = records.filter((r) => {
+    const filteredRecords = records.filter((r) =>
       queryItems.some(
         ([key, value]) => (r as Record<string, unknown>)[key] === value
       )
-    })
+    )
+
     return filteredRecords
   }
 }
